@@ -356,7 +356,8 @@ export const main: Entrypoint = async (denops) => {
       return Promise.resolve(lib.getRanks(state.henkanFeed));
     },
     async getCompleteItems() {
-      const state = currentContext.get().state;
+      const context = currentContext.get();
+      const state = context.state;
       if (state.type !== "input") {
         return [];
       }
@@ -366,6 +367,7 @@ export const main: Entrypoint = async (denops) => {
         lib.getRanks(state.henkanFeed),
         state.henkanFeed,
         (midasi) => lib.getHenkanResult("okuriari", midasi),
+        context.toString(),
       );
     },
     async registerHenkanResult(midasi: unknown, word: unknown) {

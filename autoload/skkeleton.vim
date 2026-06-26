@@ -275,7 +275,33 @@ function! skkeleton#complete_done() abort
     return
   endif
 
+  call skkeleton#strip_completed_prefix(
+  \ get(v:completed_item, 'word', ''),
+  \ get(v:completed_item, 'abbr', ''))
+
   call skkeleton#request_async('completeCallback', [midasi, word, henkan_type])
+endfunction
+
+" 補完候補は変換マーカーを含む preedit を prefix として持つ
+" (Vim の autocomplete は前方一致しない候補挿入で先頭1文字を欠落させるため)。
+" 確定後にこの prefix をバッファから取り除く。
+function! skkeleton#strip_completed_prefix(word, abbr) abort
+  let prefix_len = strlen(a:word) - strlen(a:abbr)
+  if prefix_len <= 0
+    return
+  endif
+
+  let lnum = line('.')
+  let text = getline(lnum)
+  let word_end = col('.') - 1
+  let word_start = word_end - strlen(a:word)
+  if word_start < 0 || strpart(text, word_start, strlen(a:word)) !=# a:word
+    return
+  endif
+
+  call setline(lnum,
+  \ strpart(text, 0, word_start) . strpart(text, word_start + prefix_len))
+  call cursor(lnum, word_end - prefix_len + 1)
 endfunction
 
 function! skkeleton#initialize() abort

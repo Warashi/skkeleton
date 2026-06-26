@@ -36,6 +36,7 @@ function userData(metadata: CompleteItemMetadata): string {
 export function buildOkurinasiCompleteItems(
   candidates: CompletionData,
   rankData: RankData,
+  prefix = "",
 ): CompleteItem[] {
   const ranks = new Map(rankData);
   const sortedCandidates = [...candidates].sort((a, b) =>
@@ -47,7 +48,7 @@ export function buildOkurinasiCompleteItems(
     [kana, words],
   ) =>
     words.map((word) => ({
-      word: stripAnnotation(word),
+      word: prefix + stripAnnotation(word),
       abbr: stripAnnotation(word),
       info: annotation(word),
       user_data: userData({
@@ -68,6 +69,7 @@ export function buildOkurinasiCompleteItems(
 export async function buildOkuriariCompleteItems(
   kana: string,
   getCandidates: (midasi: string) => Promise<string[] | undefined>,
+  prefix = "",
 ): Promise<CompleteItem[]> {
   const items: CompleteItem[] = [];
   for (const [word, okuri] of okuriSplits(kana)) {
@@ -78,7 +80,7 @@ export async function buildOkuriariCompleteItems(
     }
     for (const candidate of candidates) {
       items.push({
-        word: stripAnnotation(candidate) + okuri,
+        word: prefix + stripAnnotation(candidate) + okuri,
         abbr: stripAnnotation(candidate) + okuri,
         info: annotation(candidate),
         user_data: userData({
@@ -98,9 +100,10 @@ export async function buildCompleteItems(
   rankData: RankData,
   kana: string,
   getOkuriariCandidates: (midasi: string) => Promise<string[] | undefined>,
+  prefix = "",
 ): Promise<CompleteItem[]> {
   return [
-    ...buildOkurinasiCompleteItems(candidates, rankData),
-    ...await buildOkuriariCompleteItems(kana, getOkuriariCandidates),
+    ...buildOkurinasiCompleteItems(candidates, rankData, prefix),
+    ...await buildOkuriariCompleteItems(kana, getOkuriariCandidates, prefix),
   ];
 }

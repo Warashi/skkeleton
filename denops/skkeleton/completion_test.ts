@@ -74,3 +74,44 @@ Deno.test({
     );
   },
 });
+
+Deno.test({
+  name: "buildCompleteItems with preedit prefix",
+  async fn() {
+    const items = await buildCompleteItems(
+      [["あ", ["亜;note"]]],
+      [],
+      "あた",
+      () => Promise.resolve(["当"]),
+      "▽あ",
+    );
+
+    // word は前方一致用に preedit prefix を含み、abbr は候補のみ
+    assertEquals(
+      items.map((item) => [item.word, item.abbr]),
+      [
+        ["▽あ亜", "亜"],
+        ["▽あ当た", "当た"],
+      ],
+    );
+  },
+});
+
+Deno.test({
+  name: "buildOkurinasiCompleteItems with prefix keeps abbr free of prefix",
+  fn() {
+    const items = buildOkurinasiCompleteItems(
+      [["あ", ["亜亜;note", "唖"]]],
+      [],
+      "▽あ",
+    );
+
+    assertEquals(
+      items.map((item) => [item.word, item.abbr, item.info]),
+      [
+        ["▽あ亜亜", "亜亜", "note"],
+        ["▽あ唖", "唖", ""],
+      ],
+    );
+  },
+});
